@@ -1479,6 +1479,8 @@ document.getElementById("ccards").innerHTML = COUNCIL.map(([n,inc,bg,focus,link,
 // ===== Guided tour (default view) =====
 (function(){
   const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+  // Position and view only last for this visit; a fresh visit always starts on the first card
+  const SS={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}};
   const steps=[];
   const add=(chap,html,cls)=>steps.push({chap,html,cls:cls||""});
   const CH=["Start","Ballot","Dates","Mayor","Deputy","Council","Trustees","Vote"];
@@ -1639,7 +1641,7 @@ document.getElementById("ccards").innerHTML = COUNCIL.map(([n,inc,bg,focus,link,
     root.classList.toggle("is-intro",idx===0);
     if(idx===1&&typeof peekOnce==="function") setTimeout(peekOnce,0);
     root.querySelectorAll("[data-jump]").forEach(t=>{const on=t.dataset.jump===st.chap; t.classList.toggle("on",on); t.setAttribute("aria-selected",on?"true":"false");});
-    LS.set("cv-step",String(idx));
+    SS.set("cv-step",String(idx));
   };
   const layout=()=>{
     for(const [i,el] of cards){ if(i<idx||i>idx+2){ el.remove(); cards.delete(i); } }
@@ -1685,13 +1687,13 @@ document.getElementById("ccards").innerHTML = COUNCIL.map(([n,inc,bg,focus,link,
     window.__hideTip&&window.__hideTip(); dir=j>idx?1:-1; reset(j);
   }));
   const toFull=id=>{
-    LS.set("cv-mode","full"); document.documentElement.classList.remove("guided-on"); root.hidden=true;
+    SS.set("cv-mode","full"); document.documentElement.classList.remove("guided-on"); root.hidden=true;
     if(id){ history.replaceState(null,"","#"+id); window.dispatchEvent(new PopStateEvent("popstate")); }
     window.scrollTo(0,0);
     requestAnimationFrame(()=>{ if(window.__inkRebuild) window.__inkRebuild(); window.dispatchEvent(new Event("scroll")); });
   };
   const toGuided=(at)=>{
-    LS.set("cv-mode","guided"); document.documentElement.classList.add("guided-on"); root.hidden=false;
+    SS.set("cv-mode","guided"); document.documentElement.classList.add("guided-on"); root.hidden=false;
     if(typeof at==="number") idx=at; reset(idx);
   };
   window.__toGuided=toGuided;
@@ -1835,10 +1837,10 @@ document.getElementById("ccards").innerHTML = COUNCIL.map(([n,inc,bg,focus,link,
   // Which view to open
   const pageIds=NAV.map(([id])=>id);
   const h=location.hash.slice(1), hashEl=h&&document.getElementById(h);
-  const mode=LS.get("cv-mode");
+  const mode=SS.get("cv-mode");
   if(hashEl && (pageIds.includes(h)||hashEl.closest("section.race"))){ root.hidden=true; }
   else if(mode==="full"){ root.hidden=true; }
-  else { const s0=parseInt(LS.get("cv-step")||"0",10); toGuided(isNaN(s0)||s0>=steps.length?0:s0); }
+  else { const s0=parseInt(SS.get("cv-step")||"0",10); toGuided(isNaN(s0)||s0>=steps.length?0:s0); }
 })();
 </script>
 </body></html>
